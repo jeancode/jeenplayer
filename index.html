@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="./jquery-3.3.1.min.js"></script>
+    <title>jeenplayer</title>
+
+    <script>
+        $(document).ready(function(){
+            function map( x,  in_min,  in_max,  out_min,  out_max) {
+            return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+            }
+            var play = $("#play");
+            var pause =  $("#pause");
+            var cir =  $("#cir");
+            var jeenVideo =  $("#jeenVideo");
+            var controles = $("#controles");
+            var punterProgress = $("#punterProgress");
+            var clicket = false;
+
+            cir.css({
+                left:punterProgress.position().left
+            });
+
+            var canvas = document.getElementById('canvas');
+            canvas.height = jeenVideo.height();
+            canvas.width = jeenVideo.width();
+
+            var ctx =  canvas.getContext('2d');
+            var video =  document.getElementById('video');
+
+            video.style.display = "none";
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);	
+            var a =  false;
+
+
+            controles.css({
+                width:canvas.width,
+                top:canvas.height-controles.height()
+            });
+            
+            
+            canvas.addEventListener("click",function(){
+                    
+                if(a == false){
+                    a= true;
+                    video.play();
+                
+                }else if(a == true){
+                    a =  false;
+                    video.pause();
+                }
+                
+            });
+            video.addEventListener('pause',function(){
+                play.css({
+
+                "background-image":"url('pausa.png')",
+                "background-size":"cover"
+                });
+            });
+            video.addEventListener('play', function() {
+                play.css({
+
+                    "background-image":"url('play.png')",
+                    "background-size":"cover"
+                });
+                var $this = this; 
+                (
+                    function loop() {
+                     
+
+                        var tam = map(video.currentTime,0,video.duration,0,100);
+                        
+                        var posicioncir =  map(tam,0,100,0, canvas.width)
+
+                        punterProgress.css({
+                            width:tam+"%"
+                        })
+                        
+                        if(clicket == false){
+                            cir.css({
+
+                                left:(posicioncir-cir.width()) + "px"
+                            });
+                        };
+
+                        if (!$this.paused && !$this.ended) {
+                            
+                            ctx.drawImage($this, 0, 0,canvas.width,canvas.height);
+                            setTimeout(loop, 1000 / 30); // drawing at 30fps
+                        }
+
+                    })
+
+                ();
+                
+            }, 0);
+
+            play.click(function(){
+               
+                if(a == false){
+                    a= true;
+                    video.play();
+                
+                }else if(a == true){
+                    a =  false;
+                    video.pause();
+                    
+                
+                }
+            });
+
+            
+
+            cir.mousedown(function(){
+                clicket =  true;
+            });
+            cir.mouseup(function(){
+
+                clicket = false;
+                let poscpoint = cir.position().left;
+                poscpoint =  map(cir.position().left,0,canvas.width-cir.width(),0,video.duration);
+                video.currentTime=poscpoint;
+                video.play();
+            });
+  
+
+            $("#jeenVideo").mousemove(function(e){
+
+                
+                if(clicket == true){
+
+                    if(e.pageX < canvas.width){
+                        video.pause();
+                        
+                        let poscpoint = cir.position().left;
+                        
+                        poscpoint =  map(cir.position().left,0,canvas.width-cir.width(),0,video.duration);
+                        
+                        video.currentTime=poscpoint;
+                        
+                        cir.css({
+                            left:(e.pageX-cir.width()) + "px"
+                        });
+                        
+                    }
+                }
+                
+            });
+        });
+    </script>
+    
+    <style>
+        body{
+            margin: 0px;
+        }
+        #jeenVideo
+        {   
+            position: relative;
+    
+            width: 600px;
+            height: 330px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #controles{
+            position: absolute;
+             height: 100px;
+            width: 100px;
+            background: rgba(0, 0, 0, 0.815);
+            display: flex;
+            flex-direction: column;
+         }
+         #play{
+            width: 50px;
+            height: 50px;
+            /* background: red; */
+            border-radius: 50%;
+            box-shadow: 0px 0px 10px white;
+            background-image: url(pausa.png);
+            background-position: center;
+            background-size: cover;
+         }
+         #botones{
+             
+             padding-top: 10px;
+             display: flex;
+             flex-direction: row;
+             justify-content: center;
+         }
+         #progressVideo{
+             width: 100%;
+             height: 10px;
+             display: flex;
+             flex-direction: column;
+             justify-content:center;
+            background: rgba(146, 146, 146, 0.664);
+
+         }
+         #punterProgress{
+             width: 10px;
+             height: 5px;
+             background: rgb(0, 101, 233);
+             
+             border-radius:10px;
+         }
+         #cir{
+             width: 19px;
+             height: 19px;
+             background: rgba(17, 17, 17, 0.80);
+             position: absolute;
+             border-radius: 50%;
+             border:1px solid white;
+             box-shadow: 0px 0px 10px white;
+         }
+ 
+    </style>
+    <title>Document</title>
+</head>
+<body>
+    <div id="contenido">
+        
+        <div id="jeenVideo">
+            <video width="400" controls id="video">
+                    <source src="mov_bbb.mp4" type="video/mp4">
+            </video>
+            <div id="controles">
+                <div id="progressVideo">
+                    <div id="cir"></div>
+                    <div id="punterProgress"></div>
+                </div>
+                <div id="botones">
+                   
+                    <div id="play"></div>
+                    
+                </div>
+
+            </div>
+            <canvas id="canvas">
+                
+            </canvas>
+
+           
+        </div>
+
+
+    </div>
+    
+</body>
+</html>
